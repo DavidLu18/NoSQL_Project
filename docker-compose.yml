@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - COUCHBASE_URL=couchbase://couchbase
+      - COUCHBASE_USERNAME=Admin
+      - COUCHBASE_PASSWORD=123456
+      - COUCHBASE_BUCKET=ats_bucket
+      - JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+      - JWT_REFRESH_SECRET=your-refresh-secret-key-change-this-in-production
+      - CORS_ORIGIN=http://localhost:3000
+    depends_on:
+      - couchbase
+    volumes:
+      - ./backend/uploads:/app/uploads
+      - ./backend/logs:/app/logs
+    networks:
+      - ats-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:5000
+      - NEXT_PUBLIC_WS_URL=http://localhost:5000
+    depends_on:
+      - backend
+    networks:
+      - ats-network
+
+  couchbase:
+    image: couchbase:enterprise-7.6.0
+    ports:
+      - "8091-8096:8091-8096"
+      - "11210:11210"
+    volumes:
+      - couchbase-data:/opt/couchbase/var
+    networks:
+      - ats-network
+
+networks:
+  ats-network:
+    driver: bridge
+
+volumes:
+  couchbase-data:
+
