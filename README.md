@@ -349,6 +349,10 @@ npm start                    # Start production server
 - Kiểm tra thư mục `backend/uploads` đã được tạo
 - Kiểm tra `MAX_FILE_SIZE` trong `.env`
 
+## 🧭 Định hướng phát triển
+
+Tham khảo tài liệu [Đề xuất cải tiến & chức năng bổ sung](./DE_XUAT_CAI_TIEN_CHUC_NANG.md) để xem roadmap đề xuất và các tính năng gợi ý trong tương lai.
+
 ## 📝 License
 
 MIT
