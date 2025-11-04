@@ -12,6 +12,7 @@ import { Select } from '@/components/ui/Select';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import { CandidateSource } from '@ats/shared';
 
 export default function CandidatesPage() {
   const queryClient = useQueryClient();
@@ -32,7 +33,9 @@ export default function CandidatesPage() {
       toast.success('Candidate added successfully!');
       setIsModalOpen(false);
     },
-    onError: () => toast.error('Failed to add candidate'),
+    onError: (error: any) => {
+      toast.error(error.response?.data?.error?.message || 'Failed to add candidate');
+    },
   });
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -44,17 +47,28 @@ export default function CandidatesPage() {
       email: formData.get('email'),
       phone: formData.get('phone'),
       location: formData.get('location'),
-      source: formData.get('source'),
+      source: formData.get('source') || CandidateSource.OTHER,
       currentTitle: formData.get('currentTitle'),
       currentCompany: formData.get('currentCompany'),
-      experienceYears: Number(formData.get('experienceYears')),
+      experienceYears: Number(formData.get('experienceYears')) || 0,
       skills: (formData.get('skills') as string)?.split(',').map(s => s.trim()).filter(Boolean) || [],
+      tags: [],
       summary: formData.get('summary'),
     };
     createMutation.mutate(data);
   };
 
-  const candidates = data?.candidates || [];
+  const candidates = Array.isArray(data) ? data : data?.candidates || [];
+
+  const sourceOptions = [
+    { label: 'LinkedIn', value: CandidateSource.LINKEDIN },
+    { label: 'Indeed', value: CandidateSource.INDEED },
+    { label: 'Referral', value: CandidateSource.REFERRAL },
+    { label: 'Career Site', value: CandidateSource.CAREER_SITE },
+    { label: 'Job Board', value: CandidateSource.JOB_BOARD },
+    { label: 'Agency', value: CandidateSource.AGENCY },
+    { label: 'Other', value: CandidateSource.OTHER },
+  ];
 
   return (
     <div className="space-y-6">
@@ -168,15 +182,15 @@ export default function CandidatesPage() {
                 <label className="block text-sm font-bold mb-2">Source *</label>
                 <select
                   name="source"
-                  defaultValue="website"
+                  defaultValue={CandidateSource.OTHER}
                   className="w-full px-4 py-3 border-4 border-neutral-900 rounded-lg font-bold focus:outline-none focus:ring-4 focus:ring-primary/20 bg-white"
                   required
                 >
-                  <option value="website">Website</option>
-                  <option value="linkedin">LinkedIn</option>
-                  <option value="referral">Referral</option>
-                  <option value="agency">Agency</option>
-                  <option value="direct">Direct</option>
+                  {sourceOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
                 </select>
               </div>
               <Input

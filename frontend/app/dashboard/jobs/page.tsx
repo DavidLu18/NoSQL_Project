@@ -8,10 +8,9 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Modal, ModalContent, ModalFooter } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
-import { Select } from '@/components/ui/Select';
 import { TextArea } from '@/components/ui/Input';
 import { toast } from 'sonner';
-import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, PencilIcon, TrashIcon, FunnelIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { Job, JobStatus, JobType, ExperienceLevel } from '@ats/shared';
 import { motion } from 'framer-motion';
 
@@ -20,11 +19,20 @@ export default function JobsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingJob, setEditingJob] = useState<Job | null>(null);
   const [viewingJob, setViewingJob] = useState<Job | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState({
+    search: '',
+    status: '',
+    type: '',
+    department: '',
+    location: '',
+    experienceLevel: '',
+  });
 
   const { data, isLoading } = useQuery({
-    queryKey: ['jobs'],
+    queryKey: ['jobs', filters],
     queryFn: async () => {
-      const response = await jobsApi.getAll();
+      const response = await jobsApi.getAll(filters);
       return response.data.data;
     },
   });
@@ -85,30 +93,153 @@ export default function JobsPage() {
   };
 
   const jobs = data || [];
+  const hasActiveFilters = Object.values(filters).some(Boolean);
+
+  const handleFilterChange = (key: keyof typeof filters, value: string) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const resetFilters = () => {
+    setFilters({
+      search: '',
+      status: '',
+      type: '',
+      department: '',
+      location: '',
+      experienceLevel: '',
+    });
+  };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <h1 className="text-4xl font-display font-bold mb-2">Jobs</h1>
           <p className="text-neutral-600">Manage your job postings</p>
         </div>
-        <Button
-          variant="primary"
-          onClick={() => {
-            setEditingJob(null);
-            setIsModalOpen(true);
-          }}
-        >
-          <PlusIcon className="h-5 w-5 mr-2" />
-          New Job
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+          <div className="flex items-center gap-2">
+            <Button
+              variant={showFilters ? 'secondary' : 'outline'}
+              onClick={() => setShowFilters((prev) => !prev)}
+            >
+              <FunnelIcon className="h-5 w-5 mr-2" />
+              {showFilters ? 'Hide Filters' : 'Show Filters'}
+              {hasActiveFilters && (
+                <span className="ml-2 inline-flex items-center justify-center w-6 h-6 rounded-full bg-neutral-900 text-white text-xs font-bold">
+                  {Object.values(filters).filter(Boolean).length}
+                </span>
+              )}
+            </Button>
+            {hasActiveFilters && (
+              <Button variant="danger" size="sm" onClick={resetFilters}>
+                <XMarkIcon className="h-4 w-4 mr-1" />
+                Clear
+              </Button>
+            )}
+          </div>
+          <Button
+            variant="primary"
+            onClick={() => {
+              setEditingJob(null);
+              setIsModalOpen(true);
+            }}
+          >
+            <PlusIcon className="h-5 w-5 mr-2" />
+            New Job
+          </Button>
+        </div>
       </div>
+
+      {showFilters && (
+        <div className="bg-white border-4 border-neutral-900 rounded-xl p-4 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Input
+              label="Search"
+              placeholder="Search title, department or description"
+              value={filters.search}
+              onChange={(e) => handleFilterChange('search', e.target.value)}
+            />
+            <Input
+              label="Location"
+              placeholder="e.g. Remote, New York"
+              value={filters.location}
+              onChange={(e) => handleFilterChange('location', e.target.value)}
+            />
+            <Input
+              label="Department"
+              placeholder="e.g. Engineering, Sales"
+              value={filters.department}
+              onChange={(e) => handleFilterChange('department', e.target.value)}
+            />
+            <div>
+              <label className="block text-sm font-bold mb-2">Status</label>
+              <select
+                value={filters.status}
+                onChange={(e) => handleFilterChange('status', e.target.value)}
+                className="w-full px-4 py-3 border-4 border-neutral-900 rounded-lg font-bold focus:outline-none focus:ring-4 focus:ring-primary/20 bg-white"
+              >
+                <option value="">All</option>
+                {Object.values(JobStatus).map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-bold mb-2">Type</label>
+              <select
+                value={filters.type}
+                onChange={(e) => handleFilterChange('type', e.target.value)}
+                className="w-full px-4 py-3 border-4 border-neutral-900 rounded-lg font-bold focus:outline-none focus:ring-4 focus:ring-primary/20 bg-white"
+              >
+                <option value="">All</option>
+                {Object.values(JobType).map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-bold mb-2">Experience Level</label>
+              <select
+                value={filters.experienceLevel}
+                onChange={(e) => handleFilterChange('experienceLevel', e.target.value)}
+                className="w-full px-4 py-3 border-4 border-neutral-900 rounded-lg font-bold focus:outline-none focus:ring-4 focus:ring-primary/20 bg-white"
+              >
+                <option value="">All</option>
+                {Object.values(ExperienceLevel).map((level) => (
+                  <option key={level} value={level}>
+                    {level}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+      )}
 
       {isLoading ? (
         <div className="flex justify-center py-12">
           <div className="spinner" />
         </div>
+      ) : jobs.length === 0 ? (
+        <Card className="border-4 border-dashed border-neutral-900">
+          <CardContent className="py-16 text-center space-y-4">
+            <div className="text-5xl">🔍</div>
+            <h3 className="text-2xl font-bold">No jobs found</h3>
+            <p className="text-neutral-600">
+              Try adjusting your filters or create a new job posting.
+            </p>
+            {hasActiveFilters && (
+              <Button variant="primary" onClick={resetFilters}>
+                Clear Filters
+              </Button>
+            )}
+          </CardContent>
+        </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {jobs.map((job: Job, idx: number) => (

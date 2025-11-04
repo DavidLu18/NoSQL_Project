@@ -1,11 +1,13 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import { CandidateRepository } from '../repositories/CandidateRepository';
+import { ApplicationRepository } from '../repositories/ApplicationRepository';
 import { generateId } from '../utils/helpers';
 import { AppError } from '../middleware/errorHandler';
 import { CandidateFilters } from '@ats/shared';
 
 const getCandidateRepository = () => new CandidateRepository();
+const getApplicationRepository = () => new ApplicationRepository();
 
 export const getAllCandidates = async (req: AuthRequest, res: Response) => {
   try {
@@ -109,6 +111,11 @@ export const updateCandidate = async (req: AuthRequest, res: Response) => {
     const { id } = req.params;
     const updates = req.body;
 
+    // Ensure candidates can only update their own profile
+    if (req.user?.role === 'candidate' && req.user.id !== id) {
+      throw new AppError('You can only update your own profile', 403);
+    }
+
     updates.updatedAt = new Date().toISOString();
 
     const updatedCandidate = await getCandidateRepository().update(id, updates);
@@ -196,6 +203,24 @@ export const uploadCV = async (req: AuthRequest, res: Response) => {
     res.status(500).json({
       success: false,
       error: { message: 'Failed to upload CV' },
+    });
+  }
+};
+
+export const getCandidateApplications = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    
+    const applications = await getApplicationRepository().findByCandidate(id);
+
+    res.json({
+      success: true,
+      data: applications,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: { message: 'Failed to fetch applications' },
     });
   }
 };

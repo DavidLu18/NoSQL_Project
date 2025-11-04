@@ -22,7 +22,7 @@ export default function RegisterPage() {
     confirmPassword: '',
     firstName: '',
     lastName: '',
-    role: UserRole.RECRUITER,
+    role: UserRole.CANDIDATE,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -37,8 +37,9 @@ export default function RegisterPage() {
 
     try {
       await register(formData);
+      const role = useAuthStore.getState().user?.role;
       toast.success('Đăng ký thành công!');
-      router.push('/dashboard');
+      router.push(role === UserRole.CANDIDATE ? '/candidate' : '/dashboard');
     } catch (error: any) {
       toast.error(error.response?.data?.error?.message || 'Đăng ký thất bại');
     } finally {
@@ -97,6 +98,7 @@ export default function RegisterPage() {
                   setFormData({ ...formData, role: value as UserRole })
                 }
                 options={[
+                  { value: UserRole.CANDIDATE, label: 'Candidate (Ứng viên)' },
                   { value: UserRole.RECRUITER, label: 'Recruiter' },
                   { value: UserRole.HIRING_MANAGER, label: 'Hiring Manager' },
                   { value: UserRole.INTERVIEWER, label: 'Interviewer' },

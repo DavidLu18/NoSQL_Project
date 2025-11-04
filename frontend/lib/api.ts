@@ -118,6 +118,7 @@ export const candidatesApi = {
   getAll: (params?: CandidateFilters) =>
     api.get<ApiResponse<Candidate[]>>('/api/candidates', { params }),
   getById: (id: string) => api.get<ApiResponse<Candidate>>(`/api/candidates/${id}`),
+  getApplications: (id: string) => api.get<ApiResponse<Application[]>>(`/api/candidates/${id}/applications`),
   create: (data: Partial<Candidate>) =>
     api.post<ApiResponse<Candidate>>('/api/candidates', data),
   update: (id: string, data: Partial<Candidate>) =>
