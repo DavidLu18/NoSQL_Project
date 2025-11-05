@@ -3,7 +3,8 @@ export enum UserRole {
   ADMIN = 'admin',
   RECRUITER = 'recruiter',
   HIRING_MANAGER = 'hiring_manager',
-  INTERVIEWER = 'interviewer'
+  INTERVIEWER = 'interviewer',
+  CANDIDATE = 'candidate'
 }
 
 export interface User {
@@ -34,7 +35,8 @@ export enum JobType {
   FULL_TIME = 'full_time',
   PART_TIME = 'part_time',
   CONTRACT = 'contract',
-  INTERNSHIP = 'internship'
+  INTERNSHIP = 'internship',
+  REMOTE = 'remote'
 }
 
 export enum ExperienceLevel {
@@ -89,6 +91,7 @@ export enum CandidateSource {
 
 export interface Candidate {
   id: string;
+  userId?: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -106,6 +109,7 @@ export interface Candidate {
   source: CandidateSource;
   tags: string[];
   notes?: string;
+  summary?: string;
   createdAt: string;
   updatedAt: string;
 }

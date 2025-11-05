@@ -47,8 +47,15 @@ export default function InterviewsPage() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
+    
+    const applicationId = formData.get('applicationId') as string;
+    const selectedApp = applications.find((app: any) => app.id === applicationId);
+    
     const data: any = {
-      applicationId: formData.get('applicationId'),
+      applicationId,
+      jobId: selectedApp?.jobId || '',
+      candidateId: selectedApp?.candidateId || '',
+      interviewers: [],
       type: formData.get('type'),
       scheduledDate: formData.get('scheduledDate'),
       duration: Number(formData.get('duration')),
@@ -59,8 +66,8 @@ export default function InterviewsPage() {
     createMutation.mutate(data);
   };
 
-  const interviews = data?.interviews || [];
-  const applications = applicationsData || [];
+  const interviews = data?.interviews || data || [];
+  const applications = applicationsData?.applications || applicationsData || [];
 
   return (
     <div className="space-y-6">

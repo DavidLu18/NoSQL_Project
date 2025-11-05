@@ -25,8 +25,9 @@ export default function LoginPage() {
 
     try {
       await login(formData.email, formData.password);
+      const role = useAuthStore.getState().user?.role;
       toast.success('Đăng nhập thành công!');
-      router.push('/dashboard');
+      router.push(role === 'candidate' ? '/candidate' : '/dashboard');
     } catch (error: any) {
       toast.error(error.response?.data?.error?.message || 'Đăng nhập thất bại');
     } finally {

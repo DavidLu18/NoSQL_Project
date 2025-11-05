@@ -2,20 +2,28 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { tasksApi } from '@/lib/api';
+import { tasksApi, authApi } from '@/lib/api';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Modal, ModalContent, ModalFooter } from '@/components/ui/Modal';
 import { Input, TextArea } from '@/components/ui/Input';
-import { Select } from '@/components/ui/Select';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import { TaskPriority } from '@ats/shared';
 
 export default function TasksPage() {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const { data: currentUser } = useQuery({
+    queryKey: ['me'],
+    queryFn: async () => {
+      const response = await authApi.getMe();
+      return response.data.data;
+    },
+  });
 
   const { data, isLoading } = useQuery({
     queryKey: ['tasks-my'],
@@ -38,16 +46,31 @@ export default function TasksPage() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
+    
+    const relatedType = formData.get('relatedType') as string;
+    const relatedId = formData.get('relatedId') as string;
+    
     const data: any = {
       title: formData.get('title'),
       description: formData.get('description'),
       priority: formData.get('priority'),
-      dueDate: formData.get('dueDate'),
-      relatedType: formData.get('relatedType'),
-      relatedId: formData.get('relatedId'),
+      dueDate: formData.get('dueDate') || undefined,
     };
+
+    if (currentUser?.id) {
+      data.assigneeId = currentUser.id;
+    }
+    
+    if (relatedType && relatedId) {
+      data.relatedTo = {
+        type: relatedType,
+        id: relatedId,
+      };
+    }
+    
     createMutation.mutate(data);
   };
+
 
   const tasks = data || [];
 
@@ -151,14 +174,14 @@ export default function TasksPage() {
                   <label className="block text-sm font-bold mb-2">Priority *</label>
                   <select
                     name="priority"
-                    defaultValue="normal"
+                    defaultValue={TaskPriority.MEDIUM}
                     className="w-full px-4 py-3 border-4 border-neutral-900 rounded-lg font-bold focus:outline-none focus:ring-4 focus:ring-primary/20 bg-white"
                     required
                   >
-                    <option value="low">Low</option>
-                    <option value="normal">Normal</option>
-                    <option value="high">High</option>
-                    <option value="urgent">Urgent</option>
+                    <option value={TaskPriority.LOW}>Low</option>
+                    <option value={TaskPriority.MEDIUM}>Medium</option>
+                    <option value={TaskPriority.HIGH}>High</option>
+                    <option value={TaskPriority.URGENT}>Urgent</option>
                   </select>
                 </div>
                 <Input

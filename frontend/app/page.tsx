@@ -67,15 +67,26 @@ export default function HomePage() {
                 Đăng ký
               </Button>
             </div>
-            <div className="text-center">
-              <p className="text-sm text-neutral-700 mb-2">Bạn là ứng viên?</p>
-              <Button
-                size="lg"
-                variant="secondary"
-                onClick={() => router.push('/jobs')}
-              >
-                🔍 Tìm việc làm
-              </Button>
+            <div className="text-center space-y-4">
+              <div className="border-t-2 border-neutral-800 pt-6 mt-6">
+                <p className="text-sm text-neutral-700 mb-4 font-bold">Bạn là ứng viên?</p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <Button
+                    size="lg"
+                    variant="secondary"
+                    onClick={() => router.push('/jobs')}
+                  >
+                    🔍 Tìm việc làm
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    onClick={() => router.push('/candidate')}
+                  >
+                    👤 Candidate Portal
+                  </Button>
+                </div>
+              </div>
             </div>
           </motion.div>
         </motion.div>
